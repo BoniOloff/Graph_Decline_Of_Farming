@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <!-- set styles on the top -->
+    <style>
+        .chart-container {
+            max-width: 1050px;
+            /* border: 2px solid red; */
+            margin: 0 auto;
+            /* auto centers the div */
+            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        }
+
+        svg {
+            /* border: 2px solid purple; */
+            overflow: visible;
+        }
+
+        h1 {
+            /* margin: 0 0 33px 0; */
+            font-size: 20px;
+            color: #666;
+            font-family: 'Gotham SSm',Helvetica,Arial,sans-serif;
+            font-weight: normal;
+            line-height: 1.3;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .x .tick line {
+            stroke: rgba(0, 0, 0, .2);
+        }
+
+        .y .tick line {
+            stroke: rgba(0, 0, 0, .2);
+        }
+
+        .x .domain {
+            display: none;
+        }
+
+        .y .domain {
+            display: none;
+        }
+
+        .y .tick text {
+            font-size: 14px;
+            fill: #333;
+
+        }
+
+        .x .tick text {
+            font-size: 14px;
+            fill: #333;
+        }
+
+        .label {
+            font-size: 35px;
+            font-weight: 200;
+        }
+
+        .axis-label {
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .source {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .notes {
+            margin: 20px 0 0 0;
+            font-size: 13px;
+            line-height: 1.3;
+            color: #808080;
+        }
+
+        .notes_content {
+            margin: 2px 0 0 0;
+            font-size: 13px;
+            line-height: 1.3;
+            font-weight: lighter;
+            color: #808080;
+            display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+        }
+    </style>
+    <title>The Decline Of Farming And The Rise Of Everything Else</title>
+</head>
+
+<body>
+    <div class="chart-container">
+        <h1 class="headline">
+            The Decline Of Farming And The Rise Of Everything Else <b>(Number of Jobs)</b>
+        </h1>
+        <svg width="1050px" height="575px">
+        </svg>
+        
+
+    </div>
+</body>
+
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<!-- we're using d3 version 6 (the latest version) for all out work -->
+
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<!-- we're using d3 version 6 (the latest version) for all out work -->
+
+<script>
+    console.log({ d3 })
+
+    let width = 763;
+    let height = 573;
+
+    let svg = d3.select("body")
+        .select("svg")
+
+    d3.csv("firstjob_major_d3_3.csv").then(function (data) {
+
+        console.log({data})
+
+        let margin = { top: 10, right: 10, bottom: 10, left: 30 };
+
+        let sel_cols = [
+            "Farming",
+            "Blue Collar",
+            "Service",
+            "White Collar",
+            "Other"
+        ]
+
+        let sel_colors = [
+            "rgb(41, 169, 126)", // "Farming",
+            "rgb(23, 143, 232)", // "Blue Collar",
+            "rgb(223, 208, 96)", // "Services",
+            "rgb(221, 72, 143)", // "White Collar",
+            "rgb(204, 204, 204)", // "Other",
+        ]
+
+
+    //     //https://github.com/d3/d3-shape#stacks
+        let series2020 = d3.stack().keys(sel_cols);
+
+    //     // https://github.com/d3/d3-scale#ordinal-scales
+        let color = d3.scaleOrdinal()
+            .domain(sel_cols)
+            .range(sel_colors)
+
+        data.forEach(d => {
+                d["year"] = +d["year"]
+                d["Farming"] = +d["Farming"]
+                d["Blue Collar"] = +d["Blue Collar"]
+                d["Service"] = +d["Service"]
+                d["WhiteCollar"] = +d["WhiteCollar"]
+                d["Other"] = +d["Other"]
+            })
+
+        // let sumstat = d3.nest()
+        //     .key(d => d.)
+
+        let series = d3.stack()
+            .keys([ "Other",  "White Collar", "Service", "Blue Collar", "Farming"])(data)
+
+        let x = d3.scaleLinear()
+            .domain([1850, 2013])
+            .range([margin.left, width])
+
+        let y = d3.scaleLinear()
+            .domain([0, 145237873])
+            .range([height - margin.bottom, margin.top])
+
+        
+
+        let yAxisSettings = d3.axisLeft(y)
+            .tickValues([15000000, 30000000, 45000000, 60000000])
+            .tickSize(6)
+            .tickPadding(4)
+            .ticks(5)
+            .tickFormat(d3.format(".2s"))
+            
+        // let yAxis = svg
+        //     .append("g")
+        //     .attr("class", "y axis")
+        //     .call(yAxisSettings)
+        
+
+        function make_y_gridlines() {		
+            return d3.axisLeft(y)
+            .ticks(20)
+        }
+
+        function make_x_gridlines() {		
+            return d3.axisBottom(x)
+            .ticks(15)
+        }
+
+        svg.append("g")         
+            .attr("class", "grid")
+            .attr("transform", "translate(0," + height + ")")
+            .call(make_x_gridlines()
+                .tickSize(-height, 0, 0)
+                .tickFormat("")
+            )
+            .attr("opacity", "0.1")
+
+        svg.append("g")         
+            .attr("class", "grid")
+            .call(make_y_gridlines()
+                .tickSize(-width, 0, 0)
+                .tickFormat("")
+            )
+            .attr("opacity", "0.1")
+            
+        svg.append("rect")
+            .attr("x", -21)
+            .attr("y", 0)
+            .attr("width", 790)
+            .attr("height", 29)
+            .style("fill", "white")
+            .style("fill-opacity", "1");
+
+        svg.append("rect")
+            .attr("x", -21)
+            .attr("y", height-10)
+            .attr("width", 790)
+            .attr("height", 11)
+            .style("fill", "white")
+            .style("fill-opacity", "1");
+
+        let xAxisSettings = d3.axisBottom(x)
+            .tickSize(6)
+            .tickPadding(6)
+            .ticks(12)
+            .tickFormat(d3.format(".0f"))
+            
+
+        let xAxis = svg.append("g")
+            .attr("class", "x_axis")
+            .call(xAxisSettings)
+            // .call(g => g.selectAll(".domain").remove())
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+
+        //     //https://github.com/d3/d3-shape#areas
+        let area = d3.area()
+            .x(d => x(d.data.year))
+            .y0(d => y(d[0]) - 0.5)
+            .y1(d => y(d[1]) - 0.5)
+
+        //labelling 
+        svg.append("g")
+            .selectAll("path")
+            .data(series)
+            .join("path")
+            .attr("class", d =>  {
+                console.log(d)
+                return d.key
+            })
+            .attr("fill", d => color(d.key))
+            .attr("d", area)
+            .attr("stroke", "#E6F2FF")
+            .attr("stroke-width", "1px")
+            .attr("opacity", ".9")
+
+        svg.append("rect")
+            .attr("x", -21)
+            .attr("y", 0)
+            .attr("width", 50)
+            .attr("height", 570)
+            .style("fill", "white")
+            .style("fill-opacity", "1");
+
+        svg.append("text")             
+            .attr("y", 485)
+            .attr("x", 220)
+            .style("text-anchor", "right")
+            .style("fill", "#333")
+            .style("color", "#333")
+            .style("font-weight", "5")
+            .style("font-size", "16px")
+            .text("Farming")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+        svg.append("text")             
+            .attr("y", 485)
+            .attr("x", 615)
+            .style("text-anchor", "right")
+            .style("fill", "#333")
+            .style("color", "#333")
+            .style("font-weight", "5")
+            .style("font-size", "16px")
+            .text("White Collar")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+        
+        svg.append("text")             
+            .attr("y", 560)
+            .attr("x", 600)
+            .style("text-anchor", "right")
+            .style("fill", "#333")
+            .style("color", "#333")
+            .style("font-weight", "5")
+            .style("font-size", "16px")
+            .text("Other")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+        svg.append("text")             
+            .attr("y", 300)
+            .attr("x", 615)
+            .style("text-anchor", "right")
+            .style("fill", "#333")
+            .style("color", "#333")
+            .style("font-weight", "5")
+            .style("font-size", "16px")
+            .text("Services")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+        svg.append("text")             
+            .attr("y", 190)
+            .attr("x", 630)
+            .style("text-anchor", "right")
+            .style("fill", "#333")
+            .style("color", "#333")
+            .style("font-weight", "5")
+            .style("font-size", "16px")
+            .text("Blue Collar")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+        svg.append("text")             
+            .attr("y", 565)
+            .attr("x", -15)
+            .style("text-anchor", "right")
+            .style("fill", "#999")
+            .style("color", "#999")
+            .style("font-weight", "5")
+            .style("font-size", "11px")
+            .text("0 million")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+        
+        svg.append("text")             
+            .attr("y", 490)
+            .attr("x", -20)
+            .style("text-anchor", "right")
+            .style("fill", "#999")
+            .style("color", "#999")
+            .style("font-weight", "5")
+            .style("font-size", "11px")
+            .text("20 million")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+            svg.append("text")             
+            .attr("y", 414)
+            .attr("x", -20)
+            .style("text-anchor", "right")
+            .style("fill", "#999")
+            .style("color", "#999")
+            .style("font-weight", "5")
+            .style("font-size", "11px")
+            .text("40 million")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+            svg.append("text")             
+            .attr("y", 337)
+            .attr("x", -20)
+            .style("text-anchor", "right")
+            .style("fill", "#999")
+            .style("color", "#999")
+            .style("font-weight", "5")
+            .style("font-size", "11px")
+            .text("60 million")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+    
+
+    svg.append("text")             
+            .attr("y", 262)
+            .attr("x", -20)
+            .style("text-anchor", "right")
+            .style("fill", "#999")
+            .style("color", "#999")
+            .style("font-weight", "5")
+            .style("font-size", "11px")
+            .text("80 million")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+    
+
+    svg.append("text")             
+            .attr("y", 185)
+            .attr("x", -25)
+            .style("text-anchor", "right")
+            .style("fill", "#999")
+            .style("color", "#999")
+            .style("font-weight", "5")
+            .style("font-size", "11px")
+            .text("100 million")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+            svg.append("text")             
+            .attr("y", 108)
+            .attr("x", -25)
+            .style("text-anchor", "right")
+            .style("fill", "#999")
+            .style("color", "#999")
+            .style("font-weight", "5")
+            .style("font-size", "11px")
+            .text("120 million")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+            svg.append("text")             
+            .attr("y", 33)
+            .attr("x", -25)
+            .style("text-anchor", "right")
+            .style("fill", "#999")
+            .style("color", "#999")
+            .style("font-weight", "5")
+            .style("font-size", "11px")
+            .text("140 million")
+            .style("opacity", "0.7")
+            .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+            svg.append("text")             
+                .attr("y", height + 40)
+                .attr("x", 0)
+                .style("text-anchor", "right")
+                .style("fill", "#666")
+                .style("color", "#666")
+                .style("font-weight", "bold")
+                .style("font-size", "12px")
+                .text("Notes:")
+                .style("opacity", "0.7")
+                .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+            svg.append("text")             
+                .attr("y", height + 54)
+                .attr("x", 0)
+                .style("text-anchor", "right")
+                .style("fill", "#666")
+                .style("color", "#666")
+                .style("font-weight", "5")
+                .style("font-size", "12px")
+                .text("White collar includes professional and technical, managerial, sales and clerical jobs. Blue collar includes machine operators, assembly, manual labor and")
+                .style("opacity", "0.7")
+                .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+            svg.append("text")             
+                .attr("y", height + 68)
+                .attr("x", 0)
+                .style("text-anchor", "right")
+                .style("fill", "#666")
+                .style("color", "#666")
+                .style("font-weight", "5")
+                .style("font-size", "12px")
+                .text("construction jobs. Service includes food service, health care and personal service jobs")
+                .style("opacity", "0.7")
+                .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+
+            svg.append("text")             
+                .attr("y", height + 100)
+                .attr("x", 0)
+                .style("text-anchor", "right")
+                .style("fill", "#666")
+                .style("color", "#666")
+                .style("font-weight", "5")
+                .style("font-size", "12px")
+                .text("Source: IPUMS-USA, University Of Minnesota")
+                .style("opacity", "0.7")
+                .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+                
+            svg.append("text")             
+                .attr("y", height + 112)
+                .attr("x", 0)
+                .style("text-anchor", "right")
+                .style("fill", "#666")
+                .style("color", "#666")
+                .style("font-weight", "5")
+                .style("font-size", "12px")
+                .text("Credit: Quoctrung Bui/NPR")
+                .style("opacity", "0.7")
+                .attr("font-family", "nyt-franklin, arial, helvetica, sans-serif")
+    })
+
+</script>
